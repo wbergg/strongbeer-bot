@@ -45,6 +45,7 @@ func main() {
 	// Initiate read message function
 	go readMessage(tg)
 
+	nextMonday = time.Date(2024, time.April, 22, 00, 00, 00, 0, time.Local)
 	for {
 		mondayTimer(tg)
 		time.Sleep(5 * time.Second)
@@ -84,6 +85,7 @@ func readMessage(tele *tele.Tele) {
 
 	updates, err := tele.ReadM()
 	if err != nil {
+		log.Error(err)
 		panic(err)
 	}
 
@@ -103,7 +105,7 @@ func readMessage(tele *tele.Tele) {
 			message = "Hi\n\n" +
 				"I'm STRONGBEER-BOT, these are the current commands:\n\n" +
 				"/som - Is it starkölsmåndag or not?\n" +
-				"/status - Status\n"
+				"/status - Status of bot\n"
 		case "status":
 			message = "I'm ok."
 		case "som":

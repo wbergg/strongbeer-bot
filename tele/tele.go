@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	log "github.com/sirupsen/logrus"
 )
 
 type Tele struct {
@@ -27,6 +28,7 @@ func (t *Tele) Init(debug bool) {
 	var err error
 	t.bot, err = tgbotapi.NewBotAPI(t.apikey)
 	if err != nil {
+		log.Error(err)
 		panic(err)
 	}
 
@@ -39,6 +41,7 @@ func (t *Tele) Init(debug bool) {
 
 		updates, err := t.bot.GetUpdatesChan(u)
 		if err != nil {
+			log.Error(err)
 			fmt.Println(err)
 		}
 
@@ -74,6 +77,7 @@ func (t *Tele) ReadM() (tgbotapi.UpdatesChannel, error) {
 	u.Timeout = 60
 	updates, err := t.bot.GetUpdatesChan(u)
 	if err != nil {
+		log.Error(err)
 		fmt.Println(err)
 	}
 
