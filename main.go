@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -59,8 +60,8 @@ func mondayTimer(tele *tele.Tele) {
 		if announce == false {
 			tele.SendM("\xF0\x9F\x8D\xBA IT'S STARKÖLSMÅNDAG! \xF0\x9F\x8D\xBA")
 			announce = true
-			go mondayReminder(tele, 5)
-			go mondayReminder(tele, 10)
+			go mondayReminder(tele, 12)
+			go mondayReminder(tele, 18)
 			nextMonday = t.AddDate(0, 0, 7)
 			//fmt.Println("This the next monday is:", renewOn.Format(time.RFC822))
 		} else {
@@ -73,6 +74,7 @@ func mondayTimer(tele *tele.Tele) {
 }
 
 func mondayReminder(tele *tele.Tele, t time.Duration) {
+
 	timer := time.NewTimer(t * time.Hour)
 	<-timer.C
 	tele.SendM("\xF0\x9F\x8D\xBA REMINDER - IT'S STARKÖLSMÅNDAG! \xF0\x9F\x8D\xBA")
@@ -106,24 +108,23 @@ func readMessage(tele *tele.Tele) {
 			message = "I'm ok."
 		case "som":
 			t := time.Now()
+			timeUntilMsg := "\n\nTime until next STARKÖLSMÅNDAG is: " + timeUntilFormatted(t, nextMonday)
 			if t.Weekday() == time.Monday {
 				message = "\xF0\x9F\x8D\xBB YES! IT'S STARKÖLSMÅNDAG! \xF0\x9F\x8D\xBB"
 			} else if t.Weekday() == time.Tuesday {
 				message = "No, it's not.\n\n" +
-					"However, it's \xF0\x9F\x8D\xB8 GIN & TONIC tisdag! \xF0\x9F\x8D\xB8"
+					"However, it's \xF0\x9F\x8D\xB8 GIN & TONIC tisdag! \xF0\x9F\x8D\xB8" + timeUntilMsg
 			} else if t.Weekday() == time.Wednesday {
 				message = "No, it's not.\n\n" +
-					"However, it's \xF0\x9F\x8E\x89 BERGFEST TAG! \xF0\x9F\x8E\x89"
+					"However, it's \xF0\x9F\x8E\x89 BERGFEST TAG! \xF0\x9F\x8E\x89" + timeUntilMsg
 			} else if t.Weekday() == time.Thursday {
 				message = "No, it's not.\n\n" +
-					"However, it's \xF0\x9F\xA5\x83 WHISKEY TORSDAG! \xF0\x9F\xA5\x83"
+					"However, it's \xF0\x9F\xA5\x83 WHISKEY TORSDAG! \xF0\x9F\xA5\x83" + timeUntilMsg
 			} else if t.Weekday() == time.Saturday {
 				message = "No, it's not.\n\n" +
-					"However, it's \xF0\x9F\x8D\xB7 VIN LÖRDAG! \xF0\x9F\x8D\xB7"
+					"However, it's \xF0\x9F\x8D\xB7 VIN LÖRDAG! \xF0\x9F\x8D\xB7" + timeUntilMsg
 			} else {
-				message = "No, it's not.\n\n" +
-					"The next Monday is: " +
-					nextMonday.Format(time.RFC822)
+				message = "No, it's not.\n\n" + timeUntilMsg
 			}
 
 		default:
@@ -134,4 +135,35 @@ func readMessage(tele *tele.Tele) {
 			log.Panic(err)
 		}
 	}
+}
+
+func timeUntilFormatted(a time.Time, b time.Time) string {
+	const day = time.Minute * 60 * 24
+
+	d := b.Sub(a)
+
+	if d < 0 {
+		d *= -1
+	}
+
+	if d < day {
+		return d.String()
+	}
+
+	n := d / day
+	d -= n * day
+
+	re := regexp.MustCompile(`\.[0-9]*`)
+
+	if d == 0 {
+		res := fmt.Sprintf("%dd", n)
+		// Remove millseconds, microseconds and what nuts
+		res = re.ReplaceAllString(res, "")
+		return res
+	}
+
+	res := fmt.Sprintf("%dd%s", n, d)
+	// Remove millseconds, microseconds and what nuts
+	res = re.ReplaceAllString(res, "")
+	return res
 }
