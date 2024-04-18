@@ -30,9 +30,7 @@ func main() {
 		log.Error(err)
 		panic("Could not load credentials, check creds/creds.json")
 	}
-	fmt.Println(credentials.Telegram)
 
-	//tg := tele.New(credentials.Telegram.tgChannel, credentials.Telegram.tgAPIKey, false, *debug)
 	channel, err := strconv.ParseInt(credentials.Telegram.TgChannel, 10, 64)
 	if err != nil {
 		log.Error(err)
