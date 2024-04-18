@@ -38,6 +38,7 @@ func main() {
 		panic("Could not load credentials, check creds/creds.json")
 	}
 	fmt.Println(credentials.Telegram)
+
 	//tg := tele.New(credentials.Telegram.tgChannel, credentials.Telegram.tgAPIKey, false, *debug)
 	tg := tele.New(apikey, channel, *debug_telegram, *debug_stdout)
 	tg.Init(*debug_telegram)
@@ -48,6 +49,7 @@ func main() {
 	// Initiate read message function
 	go readMessage(tg)
 
+	// Loop forever
 	for {
 		mondayTimer(tg)
 		time.Sleep(5 * time.Second)
@@ -66,7 +68,6 @@ func mondayTimer(tele *tele.Tele) {
 			go mondayReminder(tele, 12)
 			go mondayReminder(tele, 18)
 			nextMondayDate = t.AddDate(0, 0, 7)
-			//fmt.Println("This the next monday is:", renewOn.Format(time.RFC822))
 		} else {
 			return
 		}
@@ -161,30 +162,22 @@ func timeUntilFormatted(a time.Time, b time.Time) string {
 
 	if d == 0 {
 		res := fmt.Sprintf("%dd", n)
-		// Remove millseconds, microseconds and what nuts
+		// Remove millseconds, microseconds and whatnot
 		res = re.ReplaceAllString(res, "")
 		return res
 	}
 
 	res := fmt.Sprintf("%dd%s", n, d)
-	// Remove millseconds, microseconds and what nuts
+	// Remove millseconds, microseconds and whatnot
 	res = re.ReplaceAllString(res, "")
 	return res
 }
 
 func nextMonday() {
 	t := time.Now()
-
-	weekdayDiff := 7 - int(t.Weekday())
-
-	if weekdayDiff == 0 {
-		nextMondayDate = t.AddDate(0, 0, weekdayDiff)
-	} else {
-		nextMondayDate = t.AddDate(0, 0, weekdayDiff+1)
-	}
-
+	daysUntilMonday := (7 - int(t.Weekday()) + 1) % 7
+	nextMondayDate := t.AddDate(0, 0, daysUntilMonday)
 	nextMondayDate = time.Date(nextMondayDate.Year(), nextMondayDate.Month(), nextMondayDate.Day(), 0, 0, 0, 0, time.Local)
-
 	// Debug
 	//fmt.Println(nextMondayDate)
 }
