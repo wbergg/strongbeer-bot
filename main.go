@@ -17,7 +17,7 @@ import (
 var announce bool = false
 var debug_telegram *bool
 var debug_stdout *bool
-var nextMonday time.Time
+var nextMondayDate time.Time
 
 func main() {
 	// temp shit
@@ -42,10 +42,12 @@ func main() {
 	tg := tele.New(apikey, channel, *debug_telegram, *debug_stdout)
 	tg.Init(*debug_telegram)
 
+	// Set date for next monday
+	nextMonday()
+
 	// Initiate read message function
 	go readMessage(tg)
 
-	nextMonday = time.Date(2024, time.April, 22, 00, 00, 00, 0, time.Local)
 	for {
 		mondayTimer(tg)
 		time.Sleep(5 * time.Second)
@@ -63,7 +65,7 @@ func mondayTimer(tele *tele.Tele) {
 			announce = true
 			go mondayReminder(tele, 12)
 			go mondayReminder(tele, 18)
-			nextMonday = t.AddDate(0, 0, 7)
+			nextMondayDate = t.AddDate(0, 0, 7)
 			//fmt.Println("This the next monday is:", renewOn.Format(time.RFC822))
 		} else {
 			return
@@ -110,7 +112,7 @@ func readMessage(tele *tele.Tele) {
 			message = "I'm ok."
 		case "som":
 			t := time.Now()
-			timeUntilMsg := "\n\nTime until next STARKÖLSMÅNDAG is: " + timeUntilFormatted(t, nextMonday)
+			timeUntilMsg := "\n\nTime until next STARKÖLSMÅNDAG is: " + timeUntilFormatted(t, nextMondayDate)
 			if t.Weekday() == time.Monday {
 				message = "\xF0\x9F\x8D\xBB YES! IT'S STARKÖLSMÅNDAG! \xF0\x9F\x8D\xBB"
 			} else if t.Weekday() == time.Tuesday {
@@ -168,4 +170,21 @@ func timeUntilFormatted(a time.Time, b time.Time) string {
 	// Remove millseconds, microseconds and what nuts
 	res = re.ReplaceAllString(res, "")
 	return res
+}
+
+func nextMonday() {
+	t := time.Now()
+
+	weekdayDiff := 7 - int(t.Weekday())
+
+	if weekdayDiff == 0 {
+		nextMondayDate = t.AddDate(0, 0, weekdayDiff)
+	} else {
+		nextMondayDate = t.AddDate(0, 0, weekdayDiff+1)
+	}
+
+	nextMondayDate = time.Date(nextMondayDate.Year(), nextMondayDate.Month(), nextMondayDate.Day(), 0, 0, 0, 0, time.Local)
+
+	// Debug
+	//fmt.Println(nextMondayDate)
 }
