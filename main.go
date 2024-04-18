@@ -176,7 +176,7 @@ func timeUntilFormatted(a time.Time, b time.Time) string {
 func nextMonday() {
 	t := time.Now()
 	daysUntilMonday := (7 - int(t.Weekday()) + 1) % 7
-	nextMondayDate := t.AddDate(0, 0, daysUntilMonday)
+	nextMondayDate = t.AddDate(0, 0, daysUntilMonday)
 	nextMondayDate = time.Date(nextMondayDate.Year(), nextMondayDate.Month(), nextMondayDate.Day(), 0, 0, 0, 0, time.Local)
 	// Debug
 	//fmt.Println(nextMondayDate)

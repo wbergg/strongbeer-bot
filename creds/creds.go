@@ -6,12 +6,12 @@ import (
 )
 
 type TGCreds struct {
-	tgAPIKey  string
-	tgChannel string
+	TgAPIKey  string `json:"tgAPIkey"`
+	TgChannel string `json:"tgChannel"`
 }
 
 type Credentials struct {
-	Telegram TGCreds
+	Telegram TGCreds `json:"Telegram"`
 }
 
 var Loaded Credentials
@@ -24,8 +24,10 @@ func LoadCreds() (Credentials, error) {
 		return Credentials{}, err
 	}
 
-	json.Unmarshal(data, &c)
-
+	err = json.Unmarshal(data, &c)
+	if err != nil {
+		return Credentials{}, err
+	}
 	Loaded = c
 
 	return c, nil
