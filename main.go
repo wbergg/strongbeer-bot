@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"time"
@@ -20,12 +19,6 @@ var debug_stdout *bool
 var nextMondayDate time.Time
 
 func main() {
-	// temp shit
-	apikey := os.Getenv("tgAPIKey")
-	channel, _ := strconv.ParseInt(os.Getenv("tgChannel"), 10, 64)
-
-	fmt.Println(channel, apikey)
-
 	// Enable bool debug flag
 	debug_telegram = flag.Bool("debug", false, "true/false - Turns on debug for telegram")
 	debug_stdout = flag.Bool("stdout", false, "true/false - Turns on stdout rather than sending to telegra")
@@ -40,7 +33,12 @@ func main() {
 	fmt.Println(credentials.Telegram)
 
 	//tg := tele.New(credentials.Telegram.tgChannel, credentials.Telegram.tgAPIKey, false, *debug)
-	tg := tele.New(apikey, channel, *debug_telegram, *debug_stdout)
+	channel, err := strconv.ParseInt(credentials.Telegram.TgChannel, 10, 64)
+	if err != nil {
+		log.Error(err)
+		panic("Could not convert Telegram channel to int64")
+	}
+	tg := tele.New(credentials.Telegram.TgAPIKey, channel, *debug_telegram, *debug_stdout)
 	tg.Init(*debug_telegram)
 
 	// Set date for next monday
