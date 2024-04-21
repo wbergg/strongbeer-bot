@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"regexp"
 	"strconv"
 	"time"
 
@@ -154,11 +153,8 @@ func timeUntilFormatted(a time.Time, b time.Time) string {
 	n := int(d / day)
 	d -= time.Duration(n) * day
 
-	re := regexp.MustCompile(`\.[0-9]*`)
 	res := fmt.Sprintf("%dd%s", n, d.Round(time.Second))
 
-	// Remove milliseconds, microseconds, and whatnot
-	res = re.ReplaceAllString(res, "")
 	return res
 }
 
