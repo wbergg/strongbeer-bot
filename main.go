@@ -125,7 +125,7 @@ func readMessage(tele *tele.Tele) {
 				message = "No, it's not.\n\n" +
 					"However, it's \xF0\x9F\x8D\xB7 VIN LÖRDAG! \xF0\x9F\x8D\xB7" + timeUntilMsg
 			} else {
-				message = "No, it's not.\n\n" + timeUntilMsg
+				message = "No, it's not." + timeUntilMsg
 			}
 
 		default:
@@ -139,32 +139,25 @@ func readMessage(tele *tele.Tele) {
 }
 
 func timeUntilFormatted(a time.Time, b time.Time) string {
-	const day = time.Minute * 60 * 24
-
-	d := b.Sub(a)
+	d := b.Sub(a).Round(time.Second) // Round to nearest second
 
 	if d < 0 {
-		d *= -1
+		d = -d
 	}
+
+	const day = 24 * time.Hour
 
 	if d < day {
 		return d.String()
 	}
 
-	n := d / day
-	d -= n * day
+	n := int(d / day)
+	d -= time.Duration(n) * day
 
 	re := regexp.MustCompile(`\.[0-9]*`)
+	res := fmt.Sprintf("%dd%s", n, d.Round(time.Second))
 
-	if d == 0 {
-		res := fmt.Sprintf("%dd", n)
-		// Remove millseconds, microseconds and whatnot
-		res = re.ReplaceAllString(res, "")
-		return res
-	}
-
-	res := fmt.Sprintf("%dd%s", n, d)
-	// Remove millseconds, microseconds and whatnot
+	// Remove milliseconds, microseconds, and whatnot
 	res = re.ReplaceAllString(res, "")
 	return res
 }
