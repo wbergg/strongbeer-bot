@@ -62,13 +62,14 @@ func mondayTimer(tele *tele.Tele) {
 			announce = true
 			go mondayReminder(tele, 12)
 			go mondayReminder(tele, 18)
+			go mondayReminder(tele, 21)
 			nextMondayDate = t.AddDate(0, 0, 7)
 		} else {
 			return
 		}
-		if t.Weekday() != time.Monday {
-			announce = false
-		}
+	}
+	if t.Weekday() != time.Monday {
+		announce = false
 	}
 }
 
