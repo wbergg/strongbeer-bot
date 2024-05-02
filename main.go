@@ -165,5 +165,7 @@ func nextMonday() {
 	nextMondayDate = t.AddDate(0, 0, daysUntilMonday)
 	nextMondayDate = time.Date(nextMondayDate.Year(), nextMondayDate.Month(), nextMondayDate.Day(), 0, 0, 0, 0, time.Local)
 	// Debug
-	//fmt.Println(nextMondayDate)
+	if *debug_stdout {
+		fmt.Println("Next Monday date is: ", nextMondayDate.String())
+	}
 }
