@@ -64,6 +64,9 @@ func mondayTimer(tele *tele.Tele) {
 			go mondayReminder(tele, 18)
 			go mondayReminder(tele, 21)
 			nextMondayDate = t.AddDate(0, 0, 7)
+			if *debug_stdout {
+				fmt.Println("Next Monday date is: ", nextMondayDate.String())
+			}
 		} else {
 			return
 		}

@@ -1,15 +1,19 @@
 # strongbeer-bot
 ![strongbeer-logo](https://assets.untappd.com/site/beer_logos_hd/beer-55370_24b70_hd.jpeg)
 
-A telegram bot to keep track of whether it's starkölsmåndag or not.
+A telegram bot to keep track of whether it's Starkölsmåndag or not.
 
-As of right now credentials are not working, you need to set two environment variables, to run the bot.
+Credentials are defined in creds/creds.json file using the following template:
 
 Telegram APIkey and channel definition:
 
 ```
-tgAPIKey="xxx"
-tgChannel="xxx"
+{
+    "Telegram": {
+		"tgAPIkey": "xxx",
+		"tgChannel": "xxx"
+	}
+}
 ```
 
 ## Running
