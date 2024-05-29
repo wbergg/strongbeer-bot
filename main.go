@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/wbergg/strongbeer-bot/config"
@@ -42,8 +43,14 @@ func main() {
 	tg := tele.New(config.Telegram.TgAPIKey, channel, *debugTelegram, *debugStdout)
 	tg.Init(*debugTelegram)
 
-	// Init Google sheets
+	//Set up data logging
+	f, err := os.OpenFile("strongbeer-log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		panic(err)
+	}
+	logrus.SetOutput(f)
 
+	// Init Google sheets
 	s, err := sheetservice.InitSheetService(config.Spreadsheet, *googleCreds)
 	if err != nil {
 		log.Fatal(err)
@@ -135,30 +142,38 @@ func readMessage(tele *tele.Tele, s *sheetservice.SheetService) {
 		case "status":
 			data, err := s.GetSheetUserData(update.Message.From.UserName)
 			if err != nil {
-				log.Fatalf("Error getting sheet data: %v", err)
+				log.Errorf("Error getting sheet data: %v", err)
+				message = "An error occurred while retrieving your status data."
+			} else {
+				message = data
 			}
-			message = data
 
 		case "checkin":
 			data, err := s.GetSheetUserCheckin(update.Message.From.UserName)
 			if err != nil {
-				log.Fatalf("Error getting sheet data: %v", err)
+				log.Errorf("Error getting sheet data: %v", err)
+				message = "An error occurred while retrieving your checkin data."
+			} else {
+				message = data
 			}
-			message = data
 
 		case "scoreboard":
 			data, err := s.GetSheetTopList(false)
 			if err != nil {
-				log.Fatalf("Error getting sheet data: %v", err)
+				log.Errorf("Error getting sheet data: %v", err)
+				message = "An error occurred while retrieving sheet data."
+			} else {
+				message = data
 			}
-			message = data
 
 		case "top3":
 			data, err := s.GetSheetTopList(true)
 			if err != nil {
-				log.Fatalf("Error getting sheet data: %v", err)
+				log.Errorf("Error getting sheet data: %v", err)
+				message = "An error occurred while retrieving sheet data."
+			} else {
+				message = data
 			}
-			message = data
 
 		case "som":
 			t := time.Now()

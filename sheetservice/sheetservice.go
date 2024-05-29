@@ -63,7 +63,10 @@ func populateUserMap() {
 }
 
 func (ss *SheetService) GetSheetUserData(username string) (string, error) {
-	row := UserMap[username]
+	row, ok := UserMap[username]
+	if !ok {
+		return "", fmt.Errorf("cannot find username in config")
+	}
 	// Read specific cell
 	readUserName := "H1!B" + row
 	resp, err := ss.srv.Spreadsheets.Values.Get(ss.spreadsheetId, readUserName).Do()
@@ -115,7 +118,10 @@ func (ss *SheetService) GetSheetUserData(username string) (string, error) {
 }
 
 func (ss *SheetService) GetSheetUserCheckin(username string) (string, error) {
-	row := UserMap[username]
+	row, ok := UserMap[username]
+	if !ok {
+		return "", fmt.Errorf("cannot find username in config")
+	}
 	// Read specific cell
 	readUserName := "H1!B" + row
 	resp, err := ss.srv.Spreadsheets.Values.Get(ss.spreadsheetId, readUserName).Do()
