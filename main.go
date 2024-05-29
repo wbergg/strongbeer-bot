@@ -28,11 +28,11 @@ func main() {
 	googleCreds := flag.String("google-creds-file", "./config/google.json", "Absolute path for Google creds-file")
 	flag.Parse()
 
-	// Load credentials
+	// Load config
 	config, err := config.LoadConfig(*configFile)
 	if err != nil {
 		log.Error(err)
-		panic("Could not load credentials, check config file.")
+		panic("Could not load config, check config file.")
 	}
 
 	channel, err := strconv.ParseInt(config.Telegram.TgChannel, 10, 64)
@@ -112,7 +112,7 @@ func readMessage(tele *tele.Tele, s *sheetservice.SheetService) {
 	updates, err := tele.ReadM()
 	if err != nil {
 		log.Error(err)
-		panic(err)
+		//panic(err)
 	}
 
 	for update := range updates {
@@ -143,7 +143,7 @@ func readMessage(tele *tele.Tele, s *sheetservice.SheetService) {
 			data, err := s.GetSheetUserData(update.Message.From.UserName)
 			if err != nil {
 				log.Errorf("Error getting sheet data: %v", err)
-				message = "An error occurred while retrieving your status data."
+				message = "An error occurred while retrieving your status data, check log-file."
 			} else {
 				message = data
 			}
@@ -152,7 +152,8 @@ func readMessage(tele *tele.Tele, s *sheetservice.SheetService) {
 			data, err := s.GetSheetUserCheckin(update.Message.From.UserName)
 			if err != nil {
 				log.Errorf("Error getting sheet data: %v", err)
-				message = "An error occurred while retrieving your checkin data."
+				message = "An error occurred while retrieving your checkin data, check log-file."
+				//message = fmt.Sprint("Error: ", err)
 			} else {
 				message = data
 			}
@@ -161,7 +162,7 @@ func readMessage(tele *tele.Tele, s *sheetservice.SheetService) {
 			data, err := s.GetSheetTopList(false)
 			if err != nil {
 				log.Errorf("Error getting sheet data: %v", err)
-				message = "An error occurred while retrieving sheet data."
+				message = "An error occurred while retrieving sheet data, check log-file."
 			} else {
 				message = data
 			}
@@ -170,7 +171,7 @@ func readMessage(tele *tele.Tele, s *sheetservice.SheetService) {
 			data, err := s.GetSheetTopList(true)
 			if err != nil {
 				log.Errorf("Error getting sheet data: %v", err)
-				message = "An error occurred while retrieving sheet data."
+				message = "An error occurred while retrieving sheet data, check log-file."
 			} else {
 				message = data
 			}
@@ -201,7 +202,8 @@ func readMessage(tele *tele.Tele, s *sheetservice.SheetService) {
 		}
 
 		if _, err := tele.SendM(message); err != nil {
-			log.Panic(err)
+			log.Error(err)
+			//log.Panic(err)
 		}
 	}
 }
