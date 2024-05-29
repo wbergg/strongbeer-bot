@@ -1,2 +1,2 @@
-creds/creds.json
+config/*.json
 test/
