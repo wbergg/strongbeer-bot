@@ -104,7 +104,11 @@ func mondayReminder(tele *tele.Tele, t time.Duration) {
 
 	timer := time.NewTimer(t * time.Hour)
 	<-timer.C
-	tele.SendM("\xF0\x9F\x8D\xBA REMINDER - IT'S STARKÖLSMÅNDAG! \xF0\x9F\x8D\xBA")
+	// Check if timer runs over 00 (next day)
+	t2 := time.Now()
+	if t2.Weekday() == time.Monday {
+		tele.SendM("\xF0\x9F\x8D\xBA REMINDER - IT'S STARKÖLSMÅNDAG! \xF0\x9F\x8D\xBA")
+	}
 }
 
 func readMessage(tele *tele.Tele, s *sheetservice.SheetService) {
