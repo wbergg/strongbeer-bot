@@ -13,6 +13,7 @@ type TGCreds struct {
 type Config struct {
 	Telegram    TGCreds           `json:"Telegram"`
 	Spreadsheet string            `json:"SpreadsheetID"`
+	Sheetname   string            `json:"Sheetname"`
 	Users       map[string]string `json:"UserMap"`
 }
 

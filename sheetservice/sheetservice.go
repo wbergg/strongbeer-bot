@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/wbergg/strongbeer-bot/config"
+	"github.com/wbergg/strongbeer-bot/helper"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
@@ -62,44 +63,24 @@ func populateUserMap() {
 	}
 }
 
-func (ss *SheetService) GetSheetUserData(username string) (string, error) {
-	row, ok := UserMap[username]
-	if !ok {
-		return "", fmt.Errorf("cannot find username in config")
-	}
-	// Read specific cell
-	readUserName := "H1!B" + row
-	resp, err := ss.srv.Spreadsheets.Values.Get(ss.spreadsheetId, readUserName).Do()
+func (ss *SheetService) GetStatus(username string) (string, error) {
+
+	// Read cell
+	value, err := ss.GetCell(username, "B")
 	if err != nil {
 		return "", fmt.Errorf("unable to retrieve data from cell: %v", err)
 	}
 
-	var value string
-	if len(resp.Values) > 0 && len(resp.Values[0]) > 0 {
-		value = resp.Values[0][0].(string)
-	} else {
-		value = ""
-	}
-
-	// Read specific cell
-	readPoints := "H1!AE" + row
-	resp, err = ss.srv.Spreadsheets.Values.Get(ss.spreadsheetId, readPoints).Do()
+	// Read cell
+	points, err := ss.GetCell(username, "AE")
 	if err != nil {
 		return "", fmt.Errorf("unable to retrieve data from cell: %v", err)
-	}
-
-	var points string
-	if len(resp.Values) > 0 && len(resp.Values[0]) > 0 {
-		points = resp.Values[0][0].(string)
-	} else {
-		points = ""
 	}
 
 	// Read range
-	readRange := "H1!C" + row + ":Z" + row
-	resp, err = ss.srv.Spreadsheets.Values.Get(ss.spreadsheetId, readRange).Do()
+	resp, err := ss.GetRange(username, "C", "Z")
 	if err != nil {
-		return "", fmt.Errorf("unable to retrieve data from range: %v", err)
+		return "", fmt.Errorf("unable to retrieve data from cellrange: %v", err)
 	}
 
 	// Count occurrences of [xX] in the specified range
@@ -117,65 +98,51 @@ func (ss *SheetService) GetSheetUserData(username string) (string, error) {
 	return message, nil
 }
 
-func (ss *SheetService) GetSheetUserCheckin(username string) (string, error) {
+func (ss *SheetService) GetCheckin(username string) (string, error) {
+	// Read cell
 	row, ok := UserMap[username]
 	if !ok {
-		return "", fmt.Errorf("cannot find username in config")
+		return "", fmt.Errorf("cannot find username in config: %v", ok)
 	}
-	// Read specific cell
-	readUserName := "H1!B" + row
-	resp, err := ss.srv.Spreadsheets.Values.Get(ss.spreadsheetId, readUserName).Do()
+
+	value, err := ss.GetCell(row, "B")
 	if err != nil {
 		return "", fmt.Errorf("unable to retrieve data from cell: %v", err)
 	}
 
-	var value string
-	if len(resp.Values) > 0 && len(resp.Values[0]) > 0 {
-		value = resp.Values[0][0].(string)
-	} else {
-		value = ""
-	}
-
-	// Read specific cell
-	readPoints := "H1!AE" + row
-	resp, err = ss.srv.Spreadsheets.Values.Get(ss.spreadsheetId, readPoints).Do()
+	// Read range for row 7 to get weeks
+	resp, err := ss.GetRange("7", "C", "AB")
 	if err != nil {
-		return "", fmt.Errorf("unable to retrieve data from cell: %v", err)
-	}
-
-	var points string
-	if len(resp.Values) > 0 && len(resp.Values[0]) > 0 {
-		points = resp.Values[0][0].(string)
-	} else {
-		points = ""
-	}
-
-	// Read range
-	readRange := "H1!C7:Z7"
-	resp, err = ss.srv.Spreadsheets.Values.Get(ss.spreadsheetId, readRange).Do()
-	if err != nil {
-		return "", fmt.Errorf("unable to retrieve data from range: %v", err)
+		return "", fmt.Errorf("unable to retrieve data from cellrange: %v", err)
 	}
 
 	// Figure out week / column relation
 	tn := time.Now()
 	_, week := tn.ISOWeek()
-	count := 0
-	//var column int
+	var checkin string
+
 	if len(resp.Values) > 0 {
-		for _, cell := range resp.Values[0] {
+		for column, cell := range resp.Values[0] {
 			cellStr, _ := cell.(string)
-			fmt.Println(cell)
 			cs, _ := strconv.Atoi(cellStr)
 			if cs == week {
-				//column = cell
-				fmt.Println("det är nu vecka: ", week)
+				c := helper.GetColumnLetter(column + 2)
+				checkin, err = ss.GetCell(row, c)
+				if err != nil {
+					return "", fmt.Errorf("unable to retrieve data from cell: %v", err)
+				}
 			}
 		}
 	}
 
-	message := "*" + value + " (" + username + ")*" + "\n\nYou have a total of " +
-		strconv.Itoa(count) + " checkins out of 24" + "\n\nYou are at place " + points
+	message := "*" + value + " (" + username + ")*" + "\n\n" +
+		"Vecka: " + strconv.Itoa(week) + "\n\n"
+	if checkin == "x" {
+		message = message + "You are *CHECKED IN*"
+	} else {
+		message = message + "You are *NOT CHECKED IN*"
+	}
+
 	return message, nil
 }
 
@@ -236,4 +203,36 @@ func (ss *SheetService) GetSheetTopList(ll bool) (string, error) {
 
 	message := strings.Join(rowStrings, "\n")
 	return message, nil
+}
+
+func (ss *SheetService) GetCell(row string, cell string) (string, error) {
+
+	// Read specific cell
+	readCell := config.Loaded.Sheetname + "!" + cell + row
+	resp, err := ss.srv.Spreadsheets.Values.Get(ss.spreadsheetId, readCell).Do()
+	if err != nil {
+		return "", fmt.Errorf("unable to retrieve data from cell: %v", err)
+	}
+
+	var value string
+	if len(resp.Values) > 0 && len(resp.Values[0]) > 0 {
+		value = resp.Values[0][0].(string)
+	} else {
+		value = ""
+	}
+
+	return value, err
+}
+
+func (ss *SheetService) GetRange(row string, cellfrom string, cellto string) (*sheets.ValueRange, error) {
+
+	// Read range
+
+	readRange := config.Loaded.Sheetname + "!" + cellfrom + row + ":" + cellto + row
+	resp, err := ss.srv.Spreadsheets.Values.Get(ss.spreadsheetId, readRange).Do()
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve data from range: %v", err)
+	}
+
+	return resp, err
 }

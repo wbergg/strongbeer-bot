@@ -140,7 +140,7 @@ func readMessage(tele *tele.Tele, s *sheetservice.SheetService) {
 			message = "I'm ok."
 
 		case "status":
-			data, err := s.GetSheetUserData(update.Message.From.UserName)
+			data, err := s.GetStatus(update.Message.From.UserName)
 			if err != nil {
 				log.Errorf("Error getting sheet data: %v", err)
 				message = "An error occurred while retrieving your status data, check log-file."
@@ -149,7 +149,7 @@ func readMessage(tele *tele.Tele, s *sheetservice.SheetService) {
 			}
 
 		case "checkin":
-			data, err := s.GetSheetUserCheckin(update.Message.From.UserName)
+			data, err := s.GetCheckin(update.Message.From.UserName)
 			if err != nil {
 				log.Errorf("Error getting sheet data: %v", err)
 				message = "An error occurred while retrieving your checkin data, check log-file."
@@ -158,7 +158,7 @@ func readMessage(tele *tele.Tele, s *sheetservice.SheetService) {
 				message = data
 			}
 
-		case "scoreboard":
+		case "leaderboard":
 			data, err := s.GetSheetTopList(false)
 			if err != nil {
 				log.Errorf("Error getting sheet data: %v", err)
